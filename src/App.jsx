@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 
-const travelSlides = [
+const adSlides = [
   {
+    theme: 'theme-travel',
+    video: 'https://res.cloudinary.com/neluxxvk/video/upload/v1788814448/Peru_Cinematic_Video_4K_-_Jotapegerd_1080p_h264.mp4',
+    poster: 'https://res.cloudinary.com/neluxxvk/video/upload/so_0/v1788814448/Peru_Cinematic_Video_4K_-_Jotapegerd_1080p_h264.jpg',
     kicker: 'Explora lo extraordinario',
     title: 'Rutas turísticas',
     highlight: 'por todo Cusco.',
@@ -10,24 +13,64 @@ const travelSlides = [
     location: 'Valle Sagrado · Machu Picchu',
     routes: '120+',
     rating: '4.9★',
+    primaryAction: 'Explorar destinos',
+    secondaryAction: 'Ver experiencias',
+    statLabel: 'rutas para descubrir',
+    ratingLabel: 'valoración viajera',
+    corner: 'CUSCO / PERÚ',
+    coordinates: '13°31′S 71°58′W',
+    copyVariants: [
+      { kicker: 'Explora lo extraordinario', title: 'Rutas turísticas', highlight: 'por todo Cusco.', description: 'Descubre historias, paisajes y experiencias que se quedan contigo. Diseña viajes memorables y encuentra el Perú que quieres vivir.' },
+      { kicker: 'Viaja con intención', title: 'Historias que', highlight: 'merecen un desvío.', description: 'Camina entre montañas, mercados y pueblos vivos. Cada ruta tiene un ritmo propio y una nueva forma de mirar el paisaje.' },
+      { kicker: 'El Perú que imaginas', title: 'Haz espacio para', highlight: 'lo inesperado.', description: 'Planifica escapadas con carácter, encuentra lugares singulares y deja que el viaje se convierta en tu mejor historia.' },
+    ],
   },
   {
-    kicker: 'Viaja con intención',
-    title: 'Historias que',
-    highlight: 'merecen un desvío.',
-    description: 'Camina entre montañas, mercados y pueblos vivos. Cada ruta tiene un ritmo propio y una nueva forma de mirar el paisaje.',
-    location: 'Pisac · Chinchero · Maras',
-    routes: '86+',
-    rating: '4.8★',
-  },
-  {
-    kicker: 'El Perú que imaginas',
-    title: 'Haz espacio para',
-    highlight: 'lo inesperado.',
-    description: 'Planifica escapadas con carácter, encuentra lugares singulares y deja que el viaje se convierta en tu mejor historia.',
-    location: 'Laguna Humantay · Ausangate',
-    routes: '64+',
+    theme: 'theme-restaurant',
+    video: 'https://res.cloudinary.com/neluxxvk/video/upload/v1788837162/Restaurant_Ad_Video_Template_Editable_-_Biteable_1080p_h264.mp4',
+    poster: 'https://res.cloudinary.com/neluxxvk/video/upload/so_0/v1788837162/Restaurant_Ad_Video_Template_Editable_-_Biteable_1080p_h264.jpg',
+    clipEnd: 9.6,
+    kicker: 'Una mesa para recordar',
+    title: 'Cocina de autor',
+    highlight: 'con alma peruana.',
+    description: 'Sabores de temporada, producto local y una carta pensada para quedarse en la memoria. Una experiencia íntima para celebrar lo extraordinario.',
+    location: 'Cusco · Perú',
+    routes: '18:30',
     rating: '4.9★',
+    primaryAction: 'Reservar una mesa',
+    secondaryAction: 'Ver la carta',
+    statLabel: 'primera reserva',
+    ratingLabel: 'experiencia de mesa',
+    corner: 'CUSCO / PERÚ',
+    coordinates: '13°31′S 71°58′W',
+    copyVariants: [
+      { kicker: 'Una mesa para recordar', title: 'Cocina de autor', highlight: 'con alma peruana.', description: 'Sabores de temporada, producto local y una carta pensada para quedarse en la memoria. Una experiencia íntima para celebrar lo extraordinario.' },
+      { kicker: 'El ritual de cada noche', title: 'Sabores que', highlight: 'despiertan los sentidos.', description: 'Del primer aroma al último brindis, cada detalle está creado para disfrutar sin prisa y compartir una noche verdaderamente especial.' },
+      { kicker: 'Tu próxima gran noche', title: 'Reserva tu mesa', highlight: 'para lo extraordinario.', description: 'Ven a descubrir una cocina cálida, elegante y honesta. Tu mesa está lista para convertirse en el comienzo de una gran historia.' },
+    ],
+  },
+  {
+    theme: 'theme-car',
+    video: 'https://res.cloudinary.com/neluxxvk/video/upload/v1788837681/BMW_M3_Competition_-_4K_Cinematic_Short_Video_-_Damir_Who_1080p_h264.mp4',
+    poster: 'https://res.cloudinary.com/neluxxvk/video/upload/so_0/v1788837681/BMW_M3_Competition_-_4K_Cinematic_Short_Video_-_Damir_Who_1080p_h264.jpg',
+    kicker: 'Diseñado para dejar huella',
+    title: 'BMW M3',
+    highlight: 'nacido para avanzar.',
+    description: 'Potencia, precisión y una presencia imposible de ignorar. Conoce la máquina que convierte cada trayecto en una experiencia.',
+    location: 'M Competition · 510 CV',
+    routes: '3.5s',
+    rating: 'M',
+    primaryAction: 'Conoce el BMW M3',
+    secondaryAction: 'Ver especificaciones',
+    statLabel: '0 a 100 km/h',
+    ratingLabel: 'm performance',
+    corner: 'BMW M / PERFORMANCE',
+    coordinates: 'MUNICH · DE 48°08′N',
+    copyVariants: [
+      { kicker: 'Diseñado para dejar huella', title: 'BMW M3', highlight: 'nacido para avanzar.', description: 'Potencia, precisión y una presencia imposible de ignorar. Conoce la máquina que convierte cada trayecto en una experiencia.' },
+      { kicker: 'El placer de conducir', title: 'Más que un auto,', highlight: 'una declaración.', description: 'Siente la respuesta inmediata, el control absoluto y la emoción de una máquina creada para quienes exigen más.' },
+      { kicker: 'No sigas el camino', title: 'Haz que cada curva', highlight: 'cuente una historia.', description: 'Diseño atlético, ingeniería alemana y el carácter M que transforma cada kilómetro en una experiencia inolvidable.' },
+    ],
   },
 ]
 
@@ -37,7 +80,8 @@ function App() {
   const [isVideoReady, setIsVideoReady] = useState(false)
   const [isLoaderReady, setIsLoaderReady] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
-  const [isTravelEnding, setIsTravelEnding] = useState(false)
+  const [activeCopy, setActiveCopy] = useState(0)
+  const [isAdTransitioning, setIsAdTransitioning] = useState(false)
   const [isSoundEnabled, setIsSoundEnabled] = useState(false)
   const [message, setMessage] = useState('')
   const logoAudioRef = useRef(null)
@@ -90,18 +134,45 @@ function App() {
     if (isLoading) return undefined
 
     const slideTimer = setInterval(() => {
-      setActiveSlide((currentSlide) => (currentSlide + 1) % travelSlides.length)
-    }, 4000)
-    const endingTimer = setTimeout(() => setIsTravelEnding(true), 10000)
+      changeAdSlide((activeSlide + 1) % adSlides.length)
+    }, 10000)
     return () => {
       clearInterval(slideTimer)
-      clearTimeout(endingTimer)
     }
-  }, [isLoading])
+  }, [isLoading, activeSlide])
+
+  useEffect(() => {
+    if (isLoading) return undefined
+
+    const copyTimer = setInterval(() => {
+      setActiveCopy((currentCopy) => (currentCopy + 1) % adSlides[activeSlide].copyVariants.length)
+    }, 3000)
+    return () => clearInterval(copyTimer)
+  }, [isLoading, activeSlide])
+
+  const changeAdSlide = useCallback((nextSlide) => {
+    if (nextSlide === activeSlide || isAdTransitioning) return
+
+    setIsAdTransitioning(true)
+    setTimeout(() => {
+      setActiveSlide(nextSlide)
+      setActiveCopy(0)
+    }, 500)
+    setTimeout(() => setIsAdTransitioning(false), 1000)
+  }, [activeSlide, isAdTransitioning])
 
   function handleVideoReady() {
     setIsVideoReady(true)
     }
+
+  function handleVideoTimeUpdate(event) {
+    const clipEnd = adSlides[activeSlide].clipEnd
+    if (clipEnd && !event.currentTarget.paused && event.currentTarget.currentTime >= clipEnd) {
+      event.currentTarget.pause()
+      event.currentTarget.currentTime = clipEnd
+      changeAdSlide((activeSlide + 1) % adSlides.length)
+    }
+  }
 
   function handleFirstInteraction() {
     const audio = logoAudioRef.current
@@ -134,9 +205,9 @@ function App() {
         <p className="loading-status">preparando tu experiencia<span>_</span></p>
         {!isSoundEnabled && <button className="loading-sound" type="button" onClick={handleEnableSound}>Activar sonido <span aria-hidden="true">♪</span></button>}
       </main>}
-      <main className={`auth-page${isTravelEnding ? ' is-ad-ended' : ''}`}>
+      <main className={`auth-page ${adSlides[activeSlide].theme}${isAdTransitioning ? ' is-ad-transitioning' : ''}`}>
       <div className="page-video" aria-hidden="true">
-        <video autoPlay muted loop playsInline preload="auto" onCanPlay={handleVideoReady} poster="https://res.cloudinary.com/neluxxvk/video/upload/so_0/v1788814448/Peru_Cinematic_Video_4K_-_Jotapegerd_1080p_h264.jpg" src="https://res.cloudinary.com/neluxxvk/video/upload/v1788814448/Peru_Cinematic_Video_4K_-_Jotapegerd_1080p_h264.mp4" />
+        <video key={adSlides[activeSlide].video} autoPlay muted loop playsInline preload="auto" onCanPlay={handleVideoReady} onTimeUpdate={handleVideoTimeUpdate} poster={adSlides[activeSlide].poster} src={adSlides[activeSlide].video} />
       </div>
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-content">
@@ -160,21 +231,21 @@ function App() {
         </div>
         <p className="legal">© 2026 jj.dev.pe <span>•</span> Hecho para crear</p>
       </section>
-      <section className={`travel-panel${isTravelEnding ? ' is-ending' : ''}`} aria-label="Rutas turísticas por todo Cusco">
+      <section className="travel-panel" aria-label={adSlides[activeSlide].title}>
         <div className="travel-copy">
-          <div className="travel-slide" key={activeSlide}>
-            <p className="kicker">{travelSlides[activeSlide].kicker}</p>
-            <h2>{travelSlides[activeSlide].title}<br /><strong>{travelSlides[activeSlide].highlight}</strong></h2>
-            <p>{travelSlides[activeSlide].description}</p>
+          <div className="travel-slide" key={`${activeSlide}-${activeCopy}`}>
+            <p className="kicker">{adSlides[activeSlide].copyVariants[activeCopy].kicker}</p>
+            <h2>{adSlides[activeSlide].copyVariants[activeCopy].title}<br /><strong>{adSlides[activeSlide].copyVariants[activeCopy].highlight}</strong></h2>
+            <p>{adSlides[activeSlide].copyVariants[activeCopy].description}</p>
           </div>
-          <div className="travel-actions"><a href="#destinos">Explorar destinos <span>↗</span></a><a href="#experiencias">Ver experiencias</a></div>
-          <div className="travel-meta"><span>0{activeSlide + 1}</span><i /><span>{travelSlides[activeSlide].location}</span></div>
-          <div className="travel-stats"><strong>{travelSlides[activeSlide].routes}</strong><small>rutas para descubrir</small><strong>{travelSlides[activeSlide].rating}</strong><small>valoración viajera</small></div>
+          <div className="travel-actions"><a href="#primary">{adSlides[activeSlide].primaryAction} <span>↗</span></a><a href="#secondary">{adSlides[activeSlide].secondaryAction}</a></div>
+          <div className="travel-meta"><span>0{activeSlide + 1}</span><i /><span>{adSlides[activeSlide].location}</span></div>
+          <div className="travel-stats"><strong>{adSlides[activeSlide].routes}</strong><small>{adSlides[activeSlide].statLabel}</small><strong>{adSlides[activeSlide].rating}</strong><small>{adSlides[activeSlide].ratingLabel}</small></div>
           <div className="travel-dots" aria-label="Seleccionar experiencia">
-            {travelSlides.map((slide, index) => <button key={slide.title} className={index === activeSlide ? 'is-active' : ''} type="button" aria-label={`Ver experiencia ${index + 1}`} onClick={() => setActiveSlide(index)} />)}
+            {adSlides.map((slide, index) => <button key={`${slide.title}-${index}`} className={index === activeSlide ? 'is-active' : ''} type="button" aria-label={`Ver publicidad ${index + 1}`} onClick={() => changeAdSlide(index)} />)}
           </div>
         </div>
-        <div className="travel-corner">CUSCO / PERÚ<br /><span>13°31′S 71°58′W</span></div>
+        <div className="travel-corner">{adSlides[activeSlide].corner}<br /><span>{adSlides[activeSlide].coordinates}</span></div>
       </section>
       </main>
     </div>
