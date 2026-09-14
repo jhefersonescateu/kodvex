@@ -141,23 +141,22 @@ const authSlides = [
   },
 ]
 
-const accountRoles = [
-  {
-    id: 'buyer',
-    name: 'Comprador',
-    tag: 'Kodvex Market',
-    description: 'Personas que quieren explorar proyectos, comparar opciones y contratar servicios.',
-  },
-  {
-    id: 'freelancer',
-    name: 'Programador / Freelancer',
-    tag: 'Kodvex Studio',
-    description: 'Profesionales que ofrecen servicios, entregan proyectos y crecen con la comunidad.',
-  },
-]
-
 const STORAGE_KEY = 'kodvex-app-state-v1'
-const DEMO_VERIFICATION_CODE = '123456'
+
+function buildAvatarUrl(name, email) {
+  const displayName = name || email || 'Usuario'
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0f766e&color=ffffff&size=96`
+}
+
+function getApiBaseUrl() {
+  if (typeof window === 'undefined') return 'https://kodvex.vercel.app'
+
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+
+  return window.location.hostname === 'localhost' ? 'http://localhost:4000' : window.location.origin
+}
 
 function getStoredAppState() {
   if (typeof window === 'undefined') {
@@ -190,10 +189,6 @@ function App() {
   const [accountUser, setAccountUser] = useState(storedState?.accountUser ?? null)
   const [pendingAccount, setPendingAccount] = useState(null)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
-  const [selectedRole, setSelectedRole] = useState(() => {
-    const savedRoleId = storedState?.selectedRoleId ?? accountRoles[0].id
-    return accountRoles.find((role) => role.id === savedRoleId) ?? accountRoles[0]
-  })
   const videoRef = useRef(null)
 
   useEffect(() => {
@@ -206,14 +201,41 @@ function App() {
           view,
           activeSlide,
           authStep,
-          selectedRoleId: selectedRole.id,
           accountUser,
         })
       )
     } catch {
       // Ignore storage write failures.
     }
-  }, [view, activeSlide, authStep, selectedRole, accountUser])
+  }, [view, activeSlide, authStep, accountUser])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const params = new URLSearchParams(window.location.search)
+    const auth = params.get('auth')
+    const token = params.get('token')
+    const email = params.get('email')
+    const name = params.get('name')
+
+    if (auth === 'success' && token && email) {
+      const nextUser = {
+        name: name || email.split('@', 1)[0] || 'Usuario',
+        email,
+        token,
+        avatar: buildAvatarUrl(name || email.split('@', 1)[0], email),
+      }
+
+      setAccountUser(nextUser)
+      setView('landing')
+      setAuthStep('login')
+      setMessage('Inicio de sesión con Google correcto.')
+
+      const nextUrl = new URL(window.location.href)
+      nextUrl.search = ''
+      window.history.replaceState({}, '', nextUrl)
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -239,59 +261,110 @@ function App() {
     video.play().catch(() => {})
   }, [view, activeSlide])
 
-  function handleLoginSubmit(event) {
+  async function handleLoginSubmit(event) {
     event.preventDefault()
-    setMessage('Demo lista: conecta aquí tu autenticación real.')
-  }
 
-  function handleGoogleLogin() {
-    setMessage(
-      selectedRole
-        ? `Demo: conectar Gmail como ${selectedRole.name}.`
-        : 'Demo: conectar Gmail con tu cuenta de Google.'
-    )
-  }
-
-  function handleCreateAccount() {
-    setAuthStep('roles')
-    setMessage('')
-  }
-
-  function handleSelectRole(role) {
-    setSelectedRole(role)
-    setAuthStep('role-form')
-    setMessage('')
-  }
-
-  function handleRoleSubmit(event) {
-    event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const name = String(formData.get('role-name') ?? '').trim()
-    const email = String(formData.get('role-email') ?? '').trim()
+    const email = String(formData.get('email') ?? '').trim().toLowerCase()
 
-    setPendingAccount({ name, email, role: selectedRole.name })
-    setAuthStep('verify')
-    setMessage(`Demo: enviamos un código de verificación a ${email}. Usa 123456 para continuar.`)
-  }
-
-  function handleVerificationSubmit(event) {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const code = String(formData.get('verification-code') ?? '').trim()
-
-    if (code !== DEMO_VERIFICATION_CODE) {
-      setMessage('El código no es válido. En esta demo, el código es 123456.')
+    if (!email) {
+      setMessage('Ingresa un correo válido.')
       return
     }
 
-    setAccountUser({
-      ...pendingAccount,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(pendingAccount.name)}&background=0f766e&color=ffffff&size=96`,
-    })
-    setPendingAccount(null)
-    setAuthStep('login')
-    setView('landing')
-    setMessage('Cuenta verificada. Bienvenido a jj.dev.pe.')
+    try {
+      setMessage('Enviando código de verificación...')
+      const response = await fetch(`${getApiBaseUrl()}/api/send-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'No se pudo enviar el código.')
+      }
+
+      const name = email.split('@', 1)[0] || 'Usuario'
+      setPendingAccount({ email, name })
+      setAuthStep('verify')
+      setMessage(
+        data?.dev_code
+          ? `Código enviado. Código de prueba: ${data.dev_code}`
+          : 'Código enviado correctamente. Revisa tu correo.'
+      )
+    } catch (error) {
+      setMessage(error.message || 'No se pudo enviar el codigo.')
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setMessage('Abriendo Google para iniciar sesión...')
+      const response = await fetch(`${getApiBaseUrl()}/api/auth/google/login`)
+      const data = await response.json()
+
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error || 'No se pudo iniciar sesión con Google.')
+      }
+
+      window.location.href = data.url
+    } catch (error) {
+      setMessage(error.message || 'No se pudo conectar con Google.')
+    }
+  }
+
+  function handleCreateAccount() {
+    setAuthStep('verify')
+    setMessage('Ingresa tu correo para recibir el código de verificación.')
+  }
+
+  async function handleVerificationSubmit(event) {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const code = String(formData.get('verification-code') ?? '').trim()
+    const email = pendingAccount?.email || String(formData.get('verification-email') ?? '').trim().toLowerCase()
+
+    if (!email) {
+      setMessage('No se encontró el correo para verificar.')
+      return
+    }
+
+    if (!/^\d{6}$/.test(code)) {
+      setMessage('El código debe tener 6 dígitos.')
+      return
+    }
+
+    try {
+      setMessage('Verificando código...')
+      const response = await fetch(`${getApiBaseUrl()}/api/verify-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Código incorrecto o vencido.')
+      }
+
+      const nextUser = {
+        name: pendingAccount?.name || email.split('@', 1)[0] || 'Usuario',
+        email,
+        avatar: buildAvatarUrl(pendingAccount?.name || email.split('@', 1)[0], email),
+      }
+
+      setAccountUser(nextUser)
+      setPendingAccount(null)
+      setAuthStep('login')
+      setView('landing')
+      setMessage('Correo verificado. Bienvenido a jj.dev.pe.')
+    } catch (error) {
+      setMessage(error.message || 'No se pudo verificar el código.')
+    }
   }
 
   function handleProfileAction(action) {
@@ -328,22 +401,13 @@ function App() {
       return
     }
 
-    if (authStep === 'roles') {
+    if (authStep === 'verify') {
       setAuthStep('login')
       setMessage('')
       return
     }
 
-    if (authStep === 'role-form') {
-      setAuthStep('roles')
-      setMessage('')
-      return
-    }
-
-    if (authStep === 'verify') {
-      setAuthStep('role-form')
-      setMessage('')
-    }
+    handleBackToLanding()
   }
 
   return (
@@ -685,13 +749,7 @@ function App() {
                     <label htmlFor="email">Correo electrónico</label>
                     <input id="email" name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
 
-                    <div className="password-label">
-                      <label htmlFor="password">Contraseña</label>
-                      <a href="#forgot">¿La olvidaste?</a>
-                    </div>
-                    <input id="password" name="password" type="password" placeholder="••••••••" autoComplete="current-password" required />
-
-                    <button type="submit">Entrar <span aria-hidden="true">↗</span></button>
+                    <button type="submit">Enviar código <span aria-hidden="true">↗</span></button>
                   </form>
 
                   <div className="separator">
@@ -700,7 +758,7 @@ function App() {
 
                   <div className="social-auth">
                     <button type="button" className="gmail-button" onClick={handleGoogleLogin}>
-                      Ingresar con Gmail
+                      Ingresar con Google
                     </button>
                   </div>
 
@@ -713,114 +771,6 @@ function App() {
                 </>
               )}
 
-              {authStep === 'roles' && (
-                <div className="role-selector">
-                  <p className="kicker">crea tu cuenta</p>
-                  <h2>¿Cómo quieres participar en Kodvex?</h2>
-
-                  <div className="role-grid">
-                    {accountRoles.map((role) => (
-                      <button
-                        key={role.id}
-                        type="button"
-                        className="role-card"
-                        onClick={() => handleSelectRole(role)}
-                      >
-                        <span className="role-tag">{role.tag}</span>
-                        <strong>{role.name}</strong>
-                        <small>{role.description}</small>
-                      </button>
-                    ))}
-                  </div>
-
-                </div>
-              )}
-
-              {authStep === 'role-form' && (
-                <form className="role-form" onSubmit={handleRoleSubmit}>
-                  <p className="kicker">cuenta demo</p>
-                  <h2>
-                    Crear cuenta como <span>{selectedRole.name}</span>
-                  </h2>
-                  <p className="role-intro">{selectedRole.description}</p>
-
-                  <label htmlFor="role-name">Nombre completo</label>
-                  <input id="role-name" name="role-name" type="text" placeholder="Tu nombre" required />
-
-                  <label htmlFor="role-email">Correo electrónico</label>
-                  <input
-                    id="role-email"
-                    name="role-email"
-                    type="email"
-                    placeholder="tu@correo.com"
-                    autoComplete="email"
-                    required
-                  />
-
-                  <label htmlFor="role-password">Contraseña</label>
-                  <input
-                    id="role-password"
-                    name="role-password"
-                    type="password"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                    required
-                  />
-
-                  <label htmlFor="role-phone">Teléfono</label>
-                  <input id="role-phone" name="role-phone" type="tel" placeholder="+51 999 999 999" required />
-
-                  {selectedRole.id === 'buyer' ? (
-                    <>
-                      <label htmlFor="role-account-type">Tipo de cuenta</label>
-                      <select id="role-account-type" name="role-account-type" defaultValue="persona-natural" required>
-                        <option value="persona-natural">Persona natural</option>
-                        <option value="empresa">Empresa</option>
-                      </select>
-
-                      <label htmlFor="role-location">País / ciudad</label>
-                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
-                    </>
-                  ) : (
-                    <>
-                      <label htmlFor="role-specialty">Título profesional o especialidad</label>
-                      <input
-                        id="role-specialty"
-                        name="role-specialty"
-                        type="text"
-                        placeholder="Full Stack Developer"
-                        required
-                      />
-
-                      <label htmlFor="role-stack">Stack tecnológico principal</label>
-                      <input
-                        id="role-stack"
-                        name="role-stack"
-                        type="text"
-                        placeholder="React, Python, PHP"
-                        required
-                      />
-
-                      <label htmlFor="role-location">País / ciudad</label>
-                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
-                    </>
-                  )}
-
-                  <label className="checkbox-label" htmlFor="terms-accepted">
-                    <input id="terms-accepted" name="terms-accepted" type="checkbox" required />
-                    <span>
-                      Acepto los <a href="/terms.html" target="_blank" rel="noreferrer">términos y condiciones</a> y la{' '}
-                      <a href="/privacy.html" target="_blank" rel="noreferrer">política de privacidad</a>
-                    </span>
-                  </label>
-
-                  <button type="submit" className="primary-cta role-submit">
-                    Crear cuenta
-                  </button>
-
-                </form>
-              )}
-
               {authStep === 'verify' && (
                 <form className="role-form verification-form" onSubmit={handleVerificationSubmit}>
                   <p className="kicker">verificación de correo</p>
@@ -828,6 +778,17 @@ function App() {
                   <p className="role-intro">
                     Escribe el código de 6 dígitos que enviamos a <strong>{pendingAccount?.email}</strong>.
                   </p>
+
+                  <label htmlFor="verification-email">Correo</label>
+                  <input
+                    id="verification-email"
+                    name="verification-email"
+                    type="email"
+                    value={pendingAccount?.email || ''}
+                    readOnly
+                    disabled
+                  />
+
                   <label htmlFor="verification-code">Código de verificación</label>
                   <input
                     id="verification-code"
@@ -840,7 +801,6 @@ function App() {
                     autoComplete="one-time-code"
                     required
                   />
-                  <p className="demo-hint">Demo: usa el código 123456. El envío real por Gmail requiere conectar un backend.</p>
                   <button type="submit" className="primary-cta role-submit">
                     Verificar cuenta
                   </button>
