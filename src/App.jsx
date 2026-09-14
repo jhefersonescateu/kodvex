@@ -141,6 +141,21 @@ const authSlides = [
   },
 ]
 
+const accountRoles = [
+  {
+    id: 'buyer',
+    name: 'Comprador',
+    tag: 'Kodvex Market',
+    description: 'Personas que quieren explorar proyectos, comparar opciones y contratar servicios.',
+  },
+  {
+    id: 'freelancer',
+    name: 'Programador / Freelancer',
+    tag: 'Kodvex Studio',
+    description: 'Profesionales que ofrecen servicios, entregan proyectos y crecen con la comunidad.',
+  },
+]
+
 const STORAGE_KEY = 'kodvex-app-state-v1'
 
 function buildAvatarUrl(name, email) {
@@ -189,6 +204,10 @@ function App() {
   const [accountUser, setAccountUser] = useState(storedState?.accountUser ?? null)
   const [pendingAccount, setPendingAccount] = useState(null)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [selectedRole, setSelectedRole] = useState(() => {
+    const savedRoleId = storedState?.selectedRoleId ?? accountRoles[0].id
+    return accountRoles.find((role) => role.id === savedRoleId) ?? accountRoles[0]
+  })
   const videoRef = useRef(null)
 
   useEffect(() => {
@@ -201,13 +220,14 @@ function App() {
           view,
           activeSlide,
           authStep,
+          selectedRoleId: selectedRole.id,
           accountUser,
         })
       )
     } catch {
       // Ignore storage write failures.
     }
-  }, [view, activeSlide, authStep, accountUser])
+  }, [view, activeSlide, authStep, selectedRole, accountUser])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -316,8 +336,59 @@ function App() {
   }
 
   function handleCreateAccount() {
-    setAuthStep('verify')
-    setMessage('Ingresa tu correo para recibir el código de verificación.')
+    setAuthStep('roles')
+    setMessage('')
+  }
+
+  function handleSelectRole(role) {
+    setSelectedRole(role)
+    setAuthStep('role-form')
+    setMessage('')
+  }
+
+  async function handleRoleSubmit(event) {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const name = String(formData.get('role-name') ?? '').trim()
+    const email = String(formData.get('role-email') ?? '').trim().toLowerCase()
+
+    if (!name || !email) {
+      setMessage('Completa nombre y correo.')
+      return
+    }
+
+    const payload = {
+      email,
+      name,
+      role: selectedRole.name,
+    }
+
+    setPendingAccount(payload)
+    setMessage('Enviando código de verificación...')
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/send-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'No se pudo enviar el código.')
+      }
+
+      setAuthStep('verify')
+      setMessage(
+        data?.dev_code
+          ? `Código enviado. Código de prueba: ${data.dev_code}`
+          : 'Código enviado correctamente. Revisa tu correo.'
+      )
+    } catch (error) {
+      setMessage(error.message || 'No se pudo enviar el código.')
+    }
   }
 
   async function handleVerificationSubmit(event) {
@@ -401,8 +472,20 @@ function App() {
       return
     }
 
-    if (authStep === 'verify') {
+    if (authStep === 'roles') {
       setAuthStep('login')
+      setMessage('')
+      return
+    }
+
+    if (authStep === 'role-form') {
+      setAuthStep('roles')
+      setMessage('')
+      return
+    }
+
+    if (authStep === 'verify') {
+      setAuthStep('role-form')
       setMessage('')
       return
     }
@@ -749,7 +832,13 @@ function App() {
                     <label htmlFor="email">Correo electrónico</label>
                     <input id="email" name="email" type="email" placeholder="tu@correo.com" autoComplete="email" required />
 
-                    <button type="submit">Enviar código <span aria-hidden="true">↗</span></button>
+                    <div className="password-label">
+                      <label htmlFor="password">Contraseña</label>
+                      <a href="#forgot">¿La olvidaste?</a>
+                    </div>
+                    <input id="password" name="password" type="password" placeholder="••••••••" autoComplete="current-password" required />
+
+                    <button type="submit">Entrar <span aria-hidden="true">↗</span></button>
                   </form>
 
                   <div className="separator">
@@ -758,7 +847,7 @@ function App() {
 
                   <div className="social-auth">
                     <button type="button" className="gmail-button" onClick={handleGoogleLogin}>
-                      Ingresar con Google
+                      Ingresar con Gmail
                     </button>
                   </div>
 
@@ -769,6 +858,112 @@ function App() {
                     </button>
                   </p>
                 </>
+              )}
+
+              {authStep === 'roles' && (
+                <div className="role-selector">
+                  <p className="kicker">crea tu cuenta</p>
+                  <h2>¿Cómo quieres participar en Kodvex?</h2>
+
+                  <div className="role-grid">
+                    {accountRoles.map((role) => (
+                      <button
+                        key={role.id}
+                        type="button"
+                        className="role-card"
+                        onClick={() => handleSelectRole(role)}
+                      >
+                        <span className="role-tag">{role.tag}</span>
+                        <strong>{role.name}</strong>
+                        <small>{role.description}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {authStep === 'role-form' && (
+                <form className="role-form" onSubmit={handleRoleSubmit}>
+                  <p className="kicker">cuenta demo</p>
+                  <h2>
+                    Crear cuenta como <span>{selectedRole.name}</span>
+                  </h2>
+                  <p className="role-intro">{selectedRole.description}</p>
+
+                  <label htmlFor="role-name">Nombre completo</label>
+                  <input id="role-name" name="role-name" type="text" placeholder="Tu nombre" required />
+
+                  <label htmlFor="role-email">Correo electrónico</label>
+                  <input
+                    id="role-email"
+                    name="role-email"
+                    type="email"
+                    placeholder="tu@correo.com"
+                    autoComplete="email"
+                    required
+                  />
+
+                  <label htmlFor="role-password">Contraseña</label>
+                  <input
+                    id="role-password"
+                    name="role-password"
+                    type="password"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    required
+                  />
+
+                  <label htmlFor="role-phone">Teléfono</label>
+                  <input id="role-phone" name="role-phone" type="tel" placeholder="+51 999 999 999" required />
+
+                  {selectedRole.id === 'buyer' ? (
+                    <>
+                      <label htmlFor="role-account-type">Tipo de cuenta</label>
+                      <select id="role-account-type" name="role-account-type" defaultValue="persona-natural" required>
+                        <option value="persona-natural">Persona natural</option>
+                        <option value="empresa">Empresa</option>
+                      </select>
+
+                      <label htmlFor="role-location">País / ciudad</label>
+                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
+                    </>
+                  ) : (
+                    <>
+                      <label htmlFor="role-specialty">Título profesional o especialidad</label>
+                      <input
+                        id="role-specialty"
+                        name="role-specialty"
+                        type="text"
+                        placeholder="Full Stack Developer"
+                        required
+                      />
+
+                      <label htmlFor="role-stack">Stack tecnológico principal</label>
+                      <input
+                        id="role-stack"
+                        name="role-stack"
+                        type="text"
+                        placeholder="React, Python, PHP"
+                        required
+                      />
+
+                      <label htmlFor="role-location">País / ciudad</label>
+                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
+                    </>
+                  )}
+
+                  <label className="checkbox-label" htmlFor="terms-accepted">
+                    <input id="terms-accepted" name="terms-accepted" type="checkbox" required />
+                    <span>
+                      Acepto los <a href="/terms.html" target="_blank" rel="noreferrer">términos y condiciones</a> y la{' '}
+                      <a href="/privacy.html" target="_blank" rel="noreferrer">política de privacidad</a>
+                    </span>
+                  </label>
+
+                  <button type="submit" className="primary-cta role-submit">
+                    Crear cuenta
+                  </button>
+                </form>
               )}
 
               {authStep === 'verify' && (
