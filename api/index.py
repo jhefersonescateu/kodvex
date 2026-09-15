@@ -19,7 +19,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://kodvex.vercel.app")
 ALLOW_TEST_CODE = os.getenv("ALLOW_TEST_CODE", "false").lower() == "true"
 
 verification_store = {}
@@ -161,9 +161,13 @@ def google_callback():
         )
         response.raise_for_status()
         user_data = response.json()
-    except Exception:
+    except Exception as exc:
         app.logger.exception("Google OAuth callback failed")
-        return jsonify({"error": "No se pudo completar el acceso con Google. Inténtalo de nuevo."}), 502
+        error_type = type(exc).__name__
+        return jsonify({
+            "error": "No se pudo completar el acceso con Google. Inténtalo de nuevo.",
+            "code": error_type,
+        }), 502
 
     email = str(user_data.get("email") or "").strip().lower()
     name = str(user_data.get("name") or email.split("@", 1)[0] or "Usuario").strip()
