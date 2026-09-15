@@ -176,38 +176,6 @@ const specialtySuggestions = [
   'DevOps Engineer',
 ]
 
-const stackSuggestions = [
-  'React',
-  'JavaScript',
-  'TypeScript',
-  'Python',
-  'PHP',
-  'Java',
-  'Node.js',
-  'SQL',
-  'MySQL',
-  'PostgreSQL',
-  'MongoDB',
-  'AWS',
-  'Docker',
-  'Next.js',
-  'Tailwind',
-  'Firebase',
-  'Git',
-  'Laravel',
-  'C#',
-  'Go',
-  'Rust',
-  'Swift',
-]
-
-function parseTags(value = '') {
-  return String(value)
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-}
-
 function buildAvatarUrl(name, email) {
   const displayName = name || email || 'Usuario'
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0f766e&color=ffffff&size=96`
