@@ -252,7 +252,7 @@ function App() {
         name: nextUser.name,
         provider: 'google',
       })
-      setView('landing')
+      setView('login')
       setAuthStep('roles')
       setMessage('Google conectado. Completa los datos faltantes y crea tu cuenta.')
 
