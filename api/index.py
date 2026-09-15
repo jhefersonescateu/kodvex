@@ -5,6 +5,7 @@ import random
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
 
 import requests
 from dotenv import load_dotenv
@@ -148,17 +149,21 @@ def google_callback():
     if not code:
         return jsonify({"error": "Falta el código de Google."}), 400
 
-    flow = get_google_oauth_flow()
-    flow.fetch_token(code=code)
-    credentials = flow.credentials
+    try:
+        flow = get_google_oauth_flow()
+        flow.fetch_token(code=code)
+        credentials = flow.credentials
 
-    response = requests.get(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        headers={"Authorization": f"Bearer {credentials.token}"},
-        timeout=30,
-    )
-    response.raise_for_status()
-    user_data = response.json()
+        response = requests.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {credentials.token}"},
+            timeout=30,
+        )
+        response.raise_for_status()
+        user_data = response.json()
+    except Exception:
+        app.logger.exception("Google OAuth callback failed")
+        return jsonify({"error": "No se pudo completar el acceso con Google. Inténtalo de nuevo."}), 502
 
     email = str(user_data.get("email") or "").strip().lower()
     name = str(user_data.get("name") or email.split("@", 1)[0] or "Usuario").strip()
@@ -184,7 +189,7 @@ def google_callback():
         "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
     }
 
-    redirect_target = f"{FRONTEND_URL}/?auth=success&token={token}&email={email}&name={name}"
+    redirect_target = f"{FRONTEND_URL}/?{urlencode({'auth': 'success', 'token': token, 'email': email, 'name': name})}"
     return redirect(redirect_target)
 
 
@@ -255,6 +260,37 @@ def verify_code():
 
     verification_store.pop(email, None)
     return jsonify({"success": True, "message": "Código verificado correctamente."})
+
+
+@app.post("/api/create-account")
+def create_account():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip().lower()
+    name = str(data.get("name") or "").strip()
+    role = str(data.get("role") or "").strip()
+    password = str(data.get("password") or "")
+
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) or not name or not role:
+        return jsonify({"error": "Faltan datos obligatorios de la cuenta."}), 400
+
+    if password and len(password) < 8:
+        return jsonify({"error": "La contraseña debe tener al menos 8 caracteres."}), 400
+
+    user = users_store.setdefault(email, {"id": sha256(email), "email": email})
+    user.update({
+        "name": name,
+        "role": role,
+        "phone": str(data.get("phone") or "").strip(),
+        "account_type": str(data.get("accountType") or "").strip(),
+        "location": str(data.get("location") or "").strip(),
+        "specialty": str(data.get("specialty") or "").strip(),
+        "provider": str(data.get("provider") or "manual").strip(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+    if password:
+        user["password_hash"] = sha256(password)
+
+    return jsonify({"success": True, "user": {key: value for key, value in user.items() if key != "password_hash"}})
 
 
 if __name__ == "__main__":
