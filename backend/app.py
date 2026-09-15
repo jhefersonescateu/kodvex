@@ -84,7 +84,7 @@ def get_google_oauth_flow() -> Flow:
     with credentials_path.open("r", encoding="utf-8") as f:
         client_config = json.load(f)
 
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5173")
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", f"{FRONTEND_URL}/api/auth/google/callback")
     flow = Flow.from_client_config(
         client_config,
         scopes=[

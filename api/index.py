@@ -37,7 +37,8 @@ def generate_code() -> str:
 def get_client_config() -> dict:
     client_id = os.getenv("GOOGLE_CLIENT_ID")
     client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", f"{FRONTEND_URL}/auth/google/callback")
+    default_redirect = f"{FRONTEND_URL}/api/auth/google/callback"
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", default_redirect)
 
     if not client_id or not client_secret:
         raise ValueError("Faltan GOOGLE_CLIENT_ID o GOOGLE_CLIENT_SECRET en las variables de entorno.")
@@ -55,6 +56,7 @@ def get_client_config() -> dict:
 
 
 def get_google_oauth_flow() -> Flow:
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", f"{FRONTEND_URL}/api/auth/google/callback")
     flow = Flow.from_client_config(
         get_client_config(),
         scopes=[
@@ -62,7 +64,7 @@ def get_google_oauth_flow() -> Flow:
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
         ],
-        redirect_uri=os.getenv("GOOGLE_REDIRECT_URI", f"{FRONTEND_URL}/auth/google/callback"),
+        redirect_uri=redirect_uri,
     )
     return flow
 
