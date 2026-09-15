@@ -195,12 +195,29 @@ function App() {
   })()
 
   const storedState = shouldRestoreSession ? getStoredAppState() : null
+  const initialGoogleAuthState = (() => {
+    if (typeof window === 'undefined') return null
 
-  const [view, setView] = useState(storedState?.view ?? 'landing')
+    const params = new URLSearchParams(window.location.search)
+    const auth = params.get('auth')
+    const token = params.get('token')
+    const email = params.get('email')
+
+    if (auth === 'success' && token && email) {
+      return {
+        view: 'login',
+        authStep: 'roles',
+      }
+    }
+
+    return null
+  })()
+
+  const [view, setView] = useState(initialGoogleAuthState?.view ?? storedState?.view ?? 'landing')
   const [activeSlide, setActiveSlide] = useState(storedState?.activeSlide ?? 0)
   const [message, setMessage] = useState('')
   const [isEnteringLogin, setIsEnteringLogin] = useState(false)
-  const [authStep, setAuthStep] = useState(storedState?.authStep ?? 'login')
+  const [authStep, setAuthStep] = useState(initialGoogleAuthState?.authStep ?? storedState?.authStep ?? 'login')
   const [accountUser, setAccountUser] = useState(storedState?.accountUser ?? null)
   const [pendingAccount, setPendingAccount] = useState(null)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
