@@ -158,6 +158,56 @@ const accountRoles = [
 
 const STORAGE_KEY = 'kodvex-app-state-v1'
 
+const specialtySuggestions = [
+  'Ingeniería de software',
+  'Ingeniería de ciberseguridad',
+  'Desarrollador web',
+  'Programador',
+  'Diseñador web',
+  'Full Stack Developer',
+  'Frontend Developer',
+  'Backend Developer',
+  'Diseñador UI/UX',
+  'Analista de sistemas',
+  'Soporte técnico',
+  'QA Tester',
+  'Product Designer',
+  'Data Analyst',
+  'DevOps Engineer',
+]
+
+const stackSuggestions = [
+  'React',
+  'JavaScript',
+  'TypeScript',
+  'Python',
+  'PHP',
+  'Java',
+  'Node.js',
+  'SQL',
+  'MySQL',
+  'PostgreSQL',
+  'MongoDB',
+  'AWS',
+  'Docker',
+  'Next.js',
+  'Tailwind',
+  'Firebase',
+  'Git',
+  'Laravel',
+  'C#',
+  'Go',
+  'Rust',
+  'Swift',
+]
+
+function parseTags(value = '') {
+  return String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 function buildAvatarUrl(name, email) {
   const displayName = name || email || 'Usuario'
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0f766e&color=ffffff&size=96`
@@ -220,6 +270,8 @@ function App() {
   const [authStep, setAuthStep] = useState(initialGoogleAuthState?.authStep ?? storedState?.authStep ?? 'login')
   const [accountUser, setAccountUser] = useState(storedState?.accountUser ?? null)
   const [pendingAccount, setPendingAccount] = useState(null)
+  const [specialtyTags, setSpecialtyTags] = useState([])
+  const [specialtySearch, setSpecialtySearch] = useState('')
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [selectedRole, setSelectedRole] = useState(() => {
     const savedRoleId = storedState?.selectedRoleId ?? accountRoles[0].id
@@ -357,6 +409,28 @@ function App() {
     }
   }
 
+  function addSpecialtyTag(value) {
+    const normalized = String(value ?? '').trim()
+    if (!normalized) return
+
+    setSpecialtyTags((current) => {
+      if (current.includes(normalized)) return current
+      return [...current, normalized]
+    })
+    setSpecialtySearch('')
+  }
+
+  function handleSpecialtyKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault()
+      addSpecialtyTag(specialtySearch)
+    }
+  }
+
+  function removeTag(tagToRemove) {
+    setSpecialtyTags((current) => current.filter((tag) => tag !== tagToRemove))
+  }
+
   function handleCreateAccount() {
     setAuthStep('roles')
     setMessage('')
@@ -378,8 +452,7 @@ function App() {
     const phone = String(formData.get('role-phone') ?? '').trim()
     const accountType = String(formData.get('role-account-type') ?? '').trim()
     const location = String(formData.get('role-location') ?? '').trim()
-    const specialty = String(formData.get('role-specialty') ?? '').trim()
-    const stack = String(formData.get('role-stack') ?? '').trim()
+    const specialty = specialtyTags.join(', ')
 
     if (!name || !email || !password || !phone || !location) {
       setMessage('Completa los datos obligatorios antes de continuar.')
@@ -400,7 +473,6 @@ function App() {
       accountType: selectedRole.id === 'buyer' ? accountType || 'persona-natural' : undefined,
       location,
       specialty: selectedRole.id === 'freelancer' ? specialty : undefined,
-      stack: selectedRole.id === 'freelancer' ? stack : undefined,
       provider: pendingAccount?.provider || (accountUser?.email === email ? 'google' : 'manual'),
     }
 
@@ -1024,25 +1096,56 @@ function App() {
                     </>
                   ) : (
                     <>
-                      <label htmlFor="role-specialty">Título profesional o especialidad</label>
-                      <input
-                        id="role-specialty"
-                        name="role-specialty"
-                        type="text"
-                        placeholder="Full Stack Developer"
-                        defaultValue={pendingAccount?.specialty || ''}
-                        required
-                      />
+                      <label>Título profesional o especialidad</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <input
+                          id="role-specialty"
+                          name="role-specialty"
+                          type="text"
+                          value={specialtySearch}
+                          onChange={(event) => setSpecialtySearch(event.target.value)}
+                          onKeyDown={handleSpecialtyKeyDown}
+                          placeholder="Escribe una especialidad, por ejemplo: ingeniería"
+                          list="specialty-options"
+                          autoComplete="off"
+                          style={{
+                            background: 'rgba(9, 18, 29, 0.18)',
+                            border: '1px solid rgba(157, 205, 255, 0.7)',
+                            borderRadius: 18,
+                            padding: '14px 16px',
+                            color: '#fff',
+                            fontSize: 16,
+                          }}
+                        />
+                        <datalist id="specialty-options">
+                          {specialtySuggestions.map((option) => (
+                            <option key={option} value={option} />
+                          ))}
+                        </datalist>
 
-                      <label htmlFor="role-stack">Stack tecnológico principal</label>
-                      <input
-                        id="role-stack"
-                        name="role-stack"
-                        type="text"
-                        placeholder="React, Python, PHP"
-                        defaultValue={pendingAccount?.stack || ''}
-                        required
-                      />
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {specialtyTags.length === 0 && (
+                            <span style={{ color: '#a8c9d9', fontSize: 14 }}>Tus especialidades aparecerán aquí</span>
+                          )}
+                          {specialtyTags.map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              style={{
+                                border: '1px solid rgba(117, 211, 255, 0.7)',
+                                background: 'rgba(31, 118, 151, 0.28)',
+                                color: '#ebf8ff',
+                                borderRadius: 999,
+                                padding: '6px 10px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {tag} ×
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
                       <label htmlFor="role-location">País / ciudad</label>
                       <input
