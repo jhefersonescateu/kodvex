@@ -7,6 +7,8 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
+
 import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request
