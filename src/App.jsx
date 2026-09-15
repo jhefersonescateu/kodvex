@@ -247,9 +247,14 @@ function App() {
       }
 
       setAccountUser(nextUser)
+      setPendingAccount({
+        email,
+        name: nextUser.name,
+        provider: 'google',
+      })
       setView('landing')
-      setAuthStep('login')
-      setMessage('Inicio de sesión con Google correcto.')
+      setAuthStep('roles')
+      setMessage('Google conectado. Completa los datos faltantes y crea tu cuenta.')
 
       const nextUrl = new URL(window.location.href)
       nextUrl.search = ''
@@ -352,9 +357,20 @@ function App() {
     const formData = new FormData(event.currentTarget)
     const name = String(formData.get('role-name') ?? '').trim()
     const email = String(formData.get('role-email') ?? '').trim().toLowerCase()
+    const password = String(formData.get('role-password') ?? '').trim()
+    const phone = String(formData.get('role-phone') ?? '').trim()
+    const accountType = String(formData.get('role-account-type') ?? '').trim()
+    const location = String(formData.get('role-location') ?? '').trim()
+    const specialty = String(formData.get('role-specialty') ?? '').trim()
+    const stack = String(formData.get('role-stack') ?? '').trim()
 
-    if (!name || !email) {
-      setMessage('Completa nombre y correo.')
+    if (!name || !email || !password || !phone || !location) {
+      setMessage('Completa los datos obligatorios antes de continuar.')
+      return
+    }
+
+    if (password.length < 8) {
+      setMessage('La contraseña debe tener al menos 8 caracteres.')
       return
     }
 
@@ -362,6 +378,13 @@ function App() {
       email,
       name,
       role: selectedRole.name,
+      phone,
+      password,
+      accountType: selectedRole.id === 'buyer' ? accountType || 'persona-natural' : undefined,
+      location,
+      specialty: selectedRole.id === 'freelancer' ? specialty : undefined,
+      stack: selectedRole.id === 'freelancer' ? stack : undefined,
+      provider: pendingAccount?.provider || (accountUser?.email === email ? 'google' : 'manual'),
     }
 
     setPendingAccount(payload)
@@ -422,10 +445,36 @@ function App() {
         throw new Error(data?.error || 'Código incorrecto o vencido.')
       }
 
-      const nextUser = {
-        name: pendingAccount?.name || email.split('@', 1)[0] || 'Usuario',
+      const accountPayload = {
         email,
-        avatar: buildAvatarUrl(pendingAccount?.name || email.split('@', 1)[0], email),
+        name: pendingAccount?.name || email.split('@', 1)[0] || 'Usuario',
+        role: pendingAccount?.role || selectedRole.name,
+        phone: pendingAccount?.phone || '',
+        password: pendingAccount?.password || '',
+        accountType: pendingAccount?.accountType,
+        location: pendingAccount?.location || '',
+        specialty: pendingAccount?.specialty,
+        stack: pendingAccount?.stack,
+        provider: pendingAccount?.provider || 'manual',
+      }
+
+      const createAccountResponse = await fetch(`${getApiBaseUrl()}/api/create-account`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accountPayload),
+      })
+
+      const createAccountData = await createAccountResponse.json()
+
+      if (!createAccountResponse.ok) {
+        throw new Error(createAccountData?.error || 'No se pudo crear la cuenta.')
+      }
+
+      const nextUser = {
+        name: accountPayload.name,
+        email,
+        avatar: buildAvatarUrl(accountPayload.name, email),
+        role: accountPayload.role,
       }
 
       setAccountUser(nextUser)
@@ -891,7 +940,14 @@ function App() {
                   <p className="role-intro">{selectedRole.description}</p>
 
                   <label htmlFor="role-name">Nombre completo</label>
-                  <input id="role-name" name="role-name" type="text" placeholder="Tu nombre" required />
+                  <input
+                    id="role-name"
+                    name="role-name"
+                    type="text"
+                    placeholder="Tu nombre"
+                    defaultValue={pendingAccount?.name || accountUser?.name || ''}
+                    required
+                  />
 
                   <label htmlFor="role-email">Correo electrónico</label>
                   <input
@@ -900,6 +956,8 @@ function App() {
                     type="email"
                     placeholder="tu@correo.com"
                     autoComplete="email"
+                    defaultValue={pendingAccount?.email || accountUser?.email || ''}
+                    readOnly={Boolean(accountUser?.email || pendingAccount?.provider === 'google')}
                     required
                   />
 
@@ -910,22 +968,42 @@ function App() {
                     type="password"
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    minLength={8}
                     required
                   />
 
                   <label htmlFor="role-phone">Teléfono</label>
-                  <input id="role-phone" name="role-phone" type="tel" placeholder="+51 999 999 999" required />
+                  <input
+                    id="role-phone"
+                    name="role-phone"
+                    type="tel"
+                    placeholder="+51 999 999 999"
+                    defaultValue={pendingAccount?.phone || ''}
+                    required
+                  />
 
                   {selectedRole.id === 'buyer' ? (
                     <>
                       <label htmlFor="role-account-type">Tipo de cuenta</label>
-                      <select id="role-account-type" name="role-account-type" defaultValue="persona-natural" required>
+                      <select
+                        id="role-account-type"
+                        name="role-account-type"
+                        defaultValue={pendingAccount?.accountType || 'persona-natural'}
+                        required
+                      >
                         <option value="persona-natural">Persona natural</option>
                         <option value="empresa">Empresa</option>
                       </select>
 
                       <label htmlFor="role-location">País / ciudad</label>
-                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
+                      <input
+                        id="role-location"
+                        name="role-location"
+                        type="text"
+                        placeholder="Perú, Lima"
+                        defaultValue={pendingAccount?.location || ''}
+                        required
+                      />
                     </>
                   ) : (
                     <>
@@ -935,6 +1013,7 @@ function App() {
                         name="role-specialty"
                         type="text"
                         placeholder="Full Stack Developer"
+                        defaultValue={pendingAccount?.specialty || ''}
                         required
                       />
 
@@ -944,11 +1023,19 @@ function App() {
                         name="role-stack"
                         type="text"
                         placeholder="React, Python, PHP"
+                        defaultValue={pendingAccount?.stack || ''}
                         required
                       />
 
                       <label htmlFor="role-location">País / ciudad</label>
-                      <input id="role-location" name="role-location" type="text" placeholder="Perú, Lima" required />
+                      <input
+                        id="role-location"
+                        name="role-location"
+                        type="text"
+                        placeholder="Perú, Lima"
+                        defaultValue={pendingAccount?.location || ''}
+                        required
+                      />
                     </>
                   )}
 
