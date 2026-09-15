@@ -95,18 +95,34 @@ def send_verification_email(email: str, code: str) -> None:
     creds.refresh(Request())
     service = build("gmail", "v1", credentials=creds)
     gmail_from = os.getenv("GMAIL_FROM", "tu-cuenta@gmail.com")
+    logo_url = f"{FRONTEND_URL.rstrip('/')}/favicon.svg"
 
     body = f"""
     <html>
-      <body style="font-family: Arial, sans-serif; color: #111827;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px;">
-          <h2 style="margin-bottom: 12px;">Código de verificación</h2>
-          <p style="margin: 0 0 16px;">Tu código es:</p>
-          <div style="background: #f3f4f6; border-radius: 8px; padding: 18px; text-align: center; font-size: 32px; letter-spacing: 6px; font-weight: 700;">
-            {code}
-          </div>
-          <p style="margin-top: 18px; color: #6b7280; font-size: 14px;">Este código expira en 5 minutos.</p>
-        </div>
+            <body style="margin:0; padding:0; background:#f4f5fb; font-family:Arial,Helvetica,sans-serif; color:#172033;">
+                <div style="display:none; max-height:0; overflow:hidden; opacity:0;">Tu código de verificación de Kodvex es {code}.</div>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f5fb; padding:32px 16px;">
+                    <tr><td align="center">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; background:#ffffff; border:1px solid #e5e7eb; border-radius:18px; overflow:hidden;">
+                            <tr><td style="padding:24px 30px; background:#090b1d;">
+                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td width="48"><img src="{logo_url}" width="40" height="40" alt="Kodvex" style="display:block; border:0;"></td>
+                                        <td style="padding-left:12px; color:#ffffff; font-size:22px; font-weight:700; letter-spacing:1px;">KODVEX</td>
+                                    </tr>
+                                </table>
+                            </td></tr>
+                            <tr><td style="padding:36px 30px 30px;">
+                                <p style="margin:0 0 10px; color:#6d5dfc; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;">Verificación de cuenta</p>
+                                <h1 style="margin:0 0 14px; color:#172033; font-size:28px; line-height:1.2;">Confirma tu correo</h1>
+                                <p style="margin:0 0 26px; color:#5f687a; font-size:16px; line-height:1.6;">Usa este código para continuar con la creación de tu cuenta en Kodvex:</p>
+                                <div style="padding:20px 16px; background:#f1efff; border:1px solid #ded9ff; border-radius:12px; color:#4438b8; text-align:center; font-size:34px; letter-spacing:8px; font-weight:700;">{code}</div>
+                                <p style="margin:24px 0 0; color:#7b8495; font-size:14px; line-height:1.6;">Este código caduca en 5 minutos. Si no solicitaste este correo, puedes ignorarlo.</p>
+                            </td></tr>
+                            <tr><td style="padding:18px 30px; border-top:1px solid #edf0f5; color:#929aaa; font-size:12px; line-height:1.5;">© 2026 Kodvex · Software que impulsa tus ideas</td></tr>
+                        </table>
+                    </td></tr>
+                </table>
       </body>
     </html>
     """
