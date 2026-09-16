@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const categories = ['Páginas web', 'Apps de escritorio', 'Sistemas', 'A medida']
@@ -241,6 +241,7 @@ function App() {
   const [specialtyTags, setSpecialtyTags] = useState([])
   const [specialtySearch, setSpecialtySearch] = useState('')
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [showExitModal, setShowExitModal] = useState(false)
   const [selectedRole, setSelectedRole] = useState(() => {
     const savedRoleId = storedState?.selectedRoleId ?? accountRoles[0].id
     return accountRoles.find((role) => role.id === savedRoleId) ?? accountRoles[0]
@@ -566,6 +567,34 @@ function App() {
     }, 2100)
   }
 
+  function handleRequestExitAccountCreation() {
+    if (authStep !== 'login' || pendingAccount || accountUser) {
+      setShowExitModal(true)
+    } else {
+      handleBackToLanding()
+    }
+  }
+
+  function handleConfirmExitAccountCreation() {
+    setAccountUser(null)
+    setPendingAccount(null)
+    setShowExitModal(false)
+    setAuthStep('login')
+    setView('landing')
+    setMessage('')
+    if (typeof window !== 'undefined') {
+      try {
+        window.sessionStorage.removeItem(STORAGE_KEY)
+      } catch {
+        // Ignore storage errors.
+      }
+    }
+  }
+
+  function handleCancelExitAccountCreation() {
+    setShowExitModal(false)
+  }
+
   function handleBackToLanding() {
     setView('landing')
     setAuthStep('login')
@@ -579,8 +608,7 @@ function App() {
     }
 
     if (authStep === 'roles') {
-      setAuthStep('login')
-      setMessage('')
+      setShowExitModal(true)
       return
     }
 
@@ -905,15 +933,29 @@ function App() {
           </div>
 
           <section className="login-panel" aria-labelledby="login-title">
-            <button
-              type="button"
-              className="panel-exit-button"
-              onClick={handlePanelBack}
-              aria-label={authStep === 'login' ? 'Volver a la página principal' : 'Volver al paso anterior'}
-            >
-              <span aria-hidden="true">⟵</span>
-              <span>{authStep === 'login' ? 'Salir' : 'Volver'}</span>
-            </button>
+            <div className="panel-nav-actions">
+              <button
+                type="button"
+                className="panel-exit-button"
+                onClick={handlePanelBack}
+                aria-label={authStep === 'login' ? 'Volver a la página principal' : authStep === 'roles' ? 'Salir de la creación de cuenta' : 'Volver al paso anterior'}
+              >
+                <span aria-hidden="true">⟵</span>
+                <span>{authStep === 'login' ? 'Salir' : authStep === 'roles' ? 'Salir' : 'Volver'}</span>
+              </button>
+
+              {authStep !== 'login' && authStep !== 'roles' && (
+                <button
+                  type="button"
+                  className="panel-cancel-button"
+                  onClick={handleRequestExitAccountCreation}
+                  title="Dejar de crear cuenta"
+                >
+                  <span aria-hidden="true">✕</span>
+                  <span>Salir</span>
+                </button>
+              )}
+            </div>
 
             <div className="login-content">
               <div className="brand-mark" aria-label="Kodvex">
@@ -1221,6 +1263,40 @@ function App() {
             </div>
           </section>
         </main>
+      )}
+
+      {showExitModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+          <div className="exit-warning-modal">
+            <div className="modal-warning-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            <div className="modal-text-content">
+              <h3 id="exit-modal-title">¿Quieres dejar de crear tu cuenta?</h3>
+              <p>Si sales ahora, no se completará tu registro y no iniciarás sesión en Kodvex.</p>
+            </div>
+
+            <div className="modal-action-buttons">
+              <button
+                type="button"
+                className="modal-btn modal-btn-continue"
+                onClick={handleCancelExitAccountCreation}
+              >
+                Continuar
+              </button>
+              <button
+                type="button"
+                className="modal-btn modal-btn-exit"
+                onClick={handleConfirmExitAccountCreation}
+              >
+                Salir
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
