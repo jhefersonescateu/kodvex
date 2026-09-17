@@ -700,8 +700,7 @@ function App() {
           </div>
 
           <div className="transition-brand">
-            <span className="transition-brand-main">Kodvex</span>
-            <span className="transition-brand-side">jj.dev.pe</span>
+            <img src="/kodvex-logo.png" alt="Kodvex" className="transition-logo" />
           </div>
 
           <p className="transition-status">ingresando al login</p>
@@ -723,8 +722,7 @@ function App() {
         <div className="landing-page">
           <header className="topbar">
             <div className="brand" aria-label="Kodvex">
-              <span>K</span>
-              <span>odvex</span>
+              <img src="/kodvex-logo.png" alt="Kodvex" className="site-logo" />
             </div>
 
             <nav className="main-nav" aria-label="Navegación principal">
@@ -978,8 +976,7 @@ function App() {
 
           <footer className="site-footer">
             <div className="brand" aria-label="Kodvex">
-              <span>K</span>
-              <span>odvex</span>
+              <img src="/kodvex-logo.png" alt="Kodvex" className="site-logo footer-logo" />
             </div>
             <p>© 2026 Kodvex — Desarrollo de software y soluciones para negocios.</p>
           </footer>
@@ -1034,8 +1031,7 @@ function App() {
 
             <div className="login-content">
               <div className="brand-mark" aria-label="Kodvex">
-                <span className="brand-main">Kodvex</span>
-                <span className="brand-side">jj.dev.pe</span>
+                <img src="/kodvex-logo.png" alt="Kodvex" className="login-logo" />
               </div>
 
               {authStep === 'login' && (

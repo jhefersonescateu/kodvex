@@ -6,10 +6,10 @@
   --text: #0f172a;
   --text-soft: #475569;
   --border: rgba(15, 23, 42, 0.08);
-  --accent: #2563eb;
-  --accent-2: #7c3aed;
-  --accent-soft: rgba(37, 99, 235, 0.12);
-  --shadow: 0 24px 70px rgba(37, 99, 235, 0.12);
+  --accent: #09c8f5;
+  --accent-2: #6128f5;
+  --accent-soft: rgba(9, 200, 245, 0.14);
+  --shadow: 0 24px 70px rgba(42, 53, 210, 0.18);
 }
 
 * {
@@ -24,8 +24,9 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 30%),
-    linear-gradient(180deg, #f8faff 0%, #edf3fd 100%);
+    radial-gradient(circle at top left, rgba(97, 40, 245, 0.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(9, 200, 245, 0.1), transparent 28%),
+    linear-gradient(180deg, #fbfcff 0%, #eef3ff 100%);
   color: var(--text);
 }
 
@@ -76,16 +77,22 @@ a {
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.04em;
-  font-size: clamp(1.45rem, 1.3vw + 1rem, 2rem);
-  font-weight: 700;
-  letter-spacing: -0.08em;
+  align-items: center;
+  min-width: 106px;
 }
 
-.brand span:first-child,
-.brand span:last-child {
-  color: var(--accent);
+.site-logo {
+  width: 106px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #030615;
+  box-shadow: 0 8px 22px rgba(29, 16, 94, 0.22);
+}
+
+.footer-logo {
+  width: 116px;
+  height: 58px;
 }
 
 .login-transition-screen {
@@ -209,6 +216,14 @@ a {
   gap: 6px;
   opacity: 0;
   animation: transition-brand-in 2.1s ease forwards;
+}
+
+.transition-logo {
+  width: min(280px, 48vw);
+  height: min(280px, 48vw);
+  object-fit: contain;
+  border-radius: 24px;
+  box-shadow: 0 0 50px rgba(9, 200, 245, 0.22), 0 0 90px rgba(97, 40, 245, 0.25);
 }
 
 .transition-brand-main {
@@ -417,6 +432,15 @@ a {
   font-weight: 700;
   letter-spacing: -0.08em;
   text-decoration: none;
+}
+
+.login-logo {
+  width: 132px;
+  height: 132px;
+  border-radius: 18px;
+  object-fit: contain;
+  background: #030615;
+  box-shadow: 0 0 36px rgba(9, 200, 245, 0.18), 0 0 52px rgba(97, 40, 245, 0.2);
 }
 
 .brand-mark .brand-main {
@@ -1352,7 +1376,6 @@ a {
   color: var(--ink);
   font-size: clamp(24px, 2.1vw, 32px);
   font-weight: 700;
-  letter-spacing: -0.08em;
   text-decoration: none;
   z-index: 3;
 }
