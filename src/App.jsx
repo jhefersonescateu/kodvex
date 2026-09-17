@@ -628,17 +628,6 @@ function App() {
     }, 2100)
   }
 
-  function handlePublishEntry() {
-    if (accountUser) {
-      setProfileInitialTab('portfolio')
-      setView('profile')
-      return
-    }
-
-    setMessage('Crea tu cuenta para publicar proyectos y servicios en tu perfil.')
-    handleEnterLogin()
-  }
-
   function handleRequestExitAccountCreation() {
     if (authStep !== 'login' || pendingAccount || accountUser) {
       setShowExitModal(true)
@@ -779,15 +768,6 @@ function App() {
                 </div>
               ) : (
                 <div className="guest-header-actions">
-                  <button type="button" className="header-login-button" onClick={handleEnterLogin}>
-                    Login
-                  </button>
-
-                  <button type="button" className="publish-header-button" onClick={handlePublishEntry}>
-                    <span aria-hidden="true">＋</span>
-                    <span>Subir publicación</span>
-                  </button>
-
                   <button
                     type="button"
                     className="view-profile-nav-btn"
