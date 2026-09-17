@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import ProfilePage from './ProfilePage'
+import { DEFAULT_PROFILE } from './profileData'
 import './App.css'
 
 const categories = ['Páginas web', 'Apps de escritorio', 'Sistemas', 'A medida']
@@ -303,8 +305,14 @@ function App() {
   useEffect(() => {
     if (typeof document === 'undefined') return
 
-    document.title = view === 'login' ? 'Kodvex | Login' : 'Kodvex | Página principal'
-  }, [view])
+    if (view === 'login') {
+      document.title = 'Kodvex | Login'
+    } else if (view === 'profile') {
+      document.title = `Kodvex | Perfil de ${accountUser?.name || 'Usuario'}`
+    } else {
+      document.title = 'Kodvex | Software que impulsa tus ideas'
+    }
+  }, [view, accountUser])
 
   useEffect(() => {
     if (view !== 'login') return undefined
@@ -545,6 +553,37 @@ function App() {
     }
   }
 
+  async function handleProfileUpdate(updatedData) {
+    setAccountUser(updatedData)
+
+    if (typeof window !== 'undefined') {
+      try {
+        const currentStored = getStoredAppState() || {}
+        window.sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            ...currentStored,
+            accountUser: updatedData,
+          })
+        )
+      } catch {
+        // Ignore storage write errors.
+      }
+    }
+
+    if (updatedData?.email) {
+      try {
+        await fetch(`${getApiBaseUrl()}/api/update-profile`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedData),
+        })
+      } catch {
+        // Graceful fallback
+      }
+    }
+  }
+
   function handleProfileAction(action) {
     setIsProfileMenuOpen(false)
 
@@ -554,7 +593,15 @@ function App() {
       return
     }
 
-    setMessage(action === 'profile' ? 'Demo: aquí aparecerá tu perfil.' : 'Demo: aquí podrás subir una publicación.')
+    if (action === 'profile') {
+      if (!accountUser) {
+        setAccountUser(DEFAULT_PROFILE)
+      }
+      setView('profile')
+      return
+    }
+
+    setMessage('Demo: aquí podrás subir una publicación.')
   }
 
   function handleEnterLogin() {
@@ -646,7 +693,18 @@ function App() {
           <p className="transition-status">ingresando al login</p>
         </div>
       )}
-      {view === 'landing' ? (
+      {view === 'profile' ? (
+        <ProfilePage
+          user={accountUser || DEFAULT_PROFILE}
+          onUpdateUser={handleProfileUpdate}
+          onBackToHome={() => setView('landing')}
+          onLogout={() => {
+            setAccountUser(null)
+            setView('landing')
+            setMessage('Sesión cerrada.')
+          }}
+        />
+      ) : view === 'landing' ? (
         <div className="landing-page">
           <header className="topbar">
             <div className="brand" aria-label="Kodvex">
@@ -694,14 +752,32 @@ function App() {
                   )}
                 </div>
               ) : (
-                <button type="button" className="login-link" onClick={handleEnterLogin}>
-                  <span className="button-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                      <path d="M10 7.5V4.75A1.75 1.75 0 0 1 11.75 3h5.5A1.75 1.75 0 0 1 19 4.75v14.5A1.75 1.75 0 0 1 17.25 21h-5.5A1.75 1.75 0 0 1 10 19.25V16.5M3 12h11m0 0-3.5-3.5M14 12l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                <div className="guest-header-actions">
+                  <button
+                    type="button"
+                    className="view-profile-nav-btn"
+                    onClick={() => {
+                      if (!accountUser) setAccountUser(DEFAULT_PROFILE)
+                      setView('profile')
+                    }}
+                    title="Ver y editar tu perfil"
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
                     </svg>
-                  </span>
-                  <span className="button-label">Ingresar</span>
-                </button>
+                    <span>Ver perfil</span>
+                  </button>
+
+                  <button type="button" className="login-link" onClick={handleEnterLogin}>
+                    <span className="button-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                        <path d="M10 7.5V4.75A1.75 1.75 0 0 1 11.75 3h5.5A1.75 1.75 0 0 1 19 4.75v14.5A1.75 1.75 0 0 1 17.25 21h-5.5A1.75 1.75 0 0 1 10 19.25V16.5M3 12h11m0 0-3.5-3.5M14 12l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <span className="button-label">Ingresar</span>
+                  </button>
+                </div>
               )}
             </div>
           </header>

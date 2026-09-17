@@ -316,5 +316,27 @@ def create_account():
     return jsonify({"success": True, "user": {key: value for key, value in user.items() if key != "password_hash"}})
 
 
+@app.post("/api/update-profile")
+def update_profile():
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip().lower()
+
+    if not email:
+        return jsonify({"error": "Falta el email del usuario."}), 400
+
+    user = users_store.setdefault(email, {"id": sha256(email), "email": email})
+    allowed_keys = [
+        "name", "role", "headline", "bio", "phone", "location",
+        "specialty", "skills", "avatar", "banner", "website",
+        "github", "linkedin", "accountType", "isAvailable", "projects", "services"
+    ]
+    for key in allowed_keys:
+        if key in data:
+            user[key] = data[key]
+
+    user["updated_at"] = datetime.now(timezone.utc).isoformat()
+    return jsonify({"success": True, "user": {key: value for key, value in user.items() if key != "password_hash"}})
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "4000")), debug=True)

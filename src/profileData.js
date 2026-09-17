@@ -1,0 +1,118 @@
+export const DEFAULT_PROFILE = {
+  name: 'Jheferson Escate',
+  email: 'jheferson@kodvex.pe',
+  headline: 'Full Stack Software Engineer & UI Architect',
+  role: 'Programador / Freelancer',
+  accountType: 'freelancer',
+  specialty: 'Ingeniería de software, Frontend & Backend',
+  phone: '+51 987 654 321',
+  location: 'Ica, Perú',
+  isAvailable: true,
+  bio: 'Desarrollador apasionado por la creación de aplicaciones web escalables, sistemas modernos y productos digitales de alta conversión. Con experiencia en proyectos reales en producción, priorizo código limpio, diseño estético premium y arquitecturas sólidas con React, Python y tecnologías cloud.',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1400&q=80',
+  skills: ['React', 'JavaScript', 'Python', 'Flask', 'Node.js', 'Vite', 'UI/UX Design', 'PostgreSQL', 'Git / GitHub', 'CSS3 & Responsive'],
+  website: 'https://kodvex.vercel.app',
+  github: 'https://github.com/jhefersonescateu',
+  linkedin: 'https://linkedin.com/in/jhefersonescate',
+  provider: 'manual',
+  memberSince: 'Marzo 2026',
+  stats: {
+    projectsCount: 4,
+    completedJobs: 14,
+    rating: 4.9,
+    responseHours: 1,
+  },
+  projects: [
+    {
+      id: 'p1',
+      name: 'Kodvex Core Platform',
+      category: 'Sistemas',
+      price: 'S/ 2,800',
+      description: 'Plataforma completa para venta de software y gestión de proyectos con autenticación y backend serverless.',
+      image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80',
+      tags: ['React', 'Python', 'Vercel'],
+      link: 'https://kodvex.vercel.app',
+    },
+    {
+      id: 'p2',
+      name: 'Nexus Studio Landing',
+      category: 'Páginas web',
+      price: 'S/ 1,200',
+      description: 'Landing page cinemática para estudio de diseño con reservas dinámicas y optimización SEO.',
+      image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+      tags: ['Diseño', 'Lead gen', 'SEO'],
+      link: '#',
+    },
+    {
+      id: 'p3',
+      name: 'SIS Control Empresarial',
+      category: 'Sistemas',
+      price: 'S/ 3,200',
+      description: 'Sistema ERP modular con facturación, control de inventario y analíticas en tiempo real.',
+      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+      tags: ['ERP', 'Dashboard', 'Analytics'],
+      link: '#',
+    },
+    {
+      id: 'p4',
+      name: 'QuickDesk Pro',
+      category: 'Apps de escritorio',
+      price: 'S/ 1,850',
+      description: 'Aplicación para optimización de productividad de oficina con sincronización local y en la nube.',
+      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+      tags: ['Desktop', 'Productividad'],
+      link: '#',
+    },
+  ],
+  services: [
+    {
+      id: 's1',
+      title: 'Desarrollo de Páginas Web & Landing Pages',
+      price: 'Desde S/ 900',
+      delivery: '3 - 7 días',
+      description: 'Diseño exclusivo, 100% responsivo para móviles, optimizado para conversión y posicionamiento en Google.',
+      features: ['Diseño a medida', 'Optimización SEO', 'Formularios y WhatsApp', 'Animaciones fluidas'],
+    },
+    {
+      id: 's2',
+      title: 'Sistemas de Gestión & Paneles Administrativos',
+      price: 'Desde S/ 2,400',
+      delivery: '10 - 20 días',
+      description: 'Automatización de procesos para tu negocio: ventas, stock, clientes, cobros y reportes visuales.',
+      features: ['Control de accesos y roles', 'Reportes en PDF/Excel', 'Base de datos en la nube', 'Soporte garantizado'],
+    },
+    {
+      id: 's3',
+      title: 'Aplicaciones de Escritorio & Soluciones a Medida',
+      price: 'Desde S/ 1,600',
+      delivery: '7 - 14 días',
+      description: 'Programas especializados para Windows y multiplataforma con alto rendimiento y seguridad.',
+      features: ['Rápido y liviano', 'Soporte offline', 'Integración con hardware', 'Actualizaciones fáciles'],
+    },
+  ],
+}
+
+export const PRESET_BANNERS = [
+  { id: 'b1', name: 'Cyber Neon', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1400&q=80' },
+  { id: 'b2', name: 'Deep Space', url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1400&q=80' },
+  { id: 'b3', name: 'Tech Minimal', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=80' },
+  { id: 'b4', name: 'Gradient Flow', url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1400&q=80' },
+  { id: 'b5', name: 'Dark Indigo', url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=80' },
+]
+
+export const PRESET_AVATARS = [
+  { id: 'a1', name: 'Avatar 1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80' },
+  { id: 'a2', name: 'Avatar 2', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80' },
+  { id: 'a3', name: 'Avatar 3', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80' },
+  { id: 'a4', name: 'Avatar 4', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80' },
+  { id: 'a5', name: 'Avatar 5', url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80' },
+  { id: 'a6', name: 'Avatar 6', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80' },
+]
+
+export const SKILL_SUGGESTIONS = [
+  'React', 'TypeScript', 'JavaScript', 'Python', 'Flask', 'Django',
+  'Node.js', 'Next.js', 'Vite', 'Tailwind CSS', 'CSS3', 'HTML5',
+  'PostgreSQL', 'MySQL', 'MongoDB', 'Docker', 'Git / GitHub', 'Linux',
+  'UI/UX Design', 'Figma', 'GraphQL', 'REST APIs', 'Vercel', 'Supabase'
+]
