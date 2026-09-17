@@ -768,26 +768,6 @@ function App() {
                 </div>
               ) : (
                 <div className="guest-header-actions">
-                  <button
-                    type="button"
-                    className="view-profile-nav-btn"
-                    onClick={() => {
-                      if (!accountUser) {
-                        setMessage('Inicia sesión para ver y editar tu perfil.')
-                        return
-                      }
-                      setProfileInitialTab('overview')
-                      setView('profile')
-                    }}
-                    title="Ver y editar tu perfil"
-                  >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    <span>Ver perfil</span>
-                  </button>
-
                   <button type="button" className="login-link" onClick={handleEnterLogin}>
                     <span className="button-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
