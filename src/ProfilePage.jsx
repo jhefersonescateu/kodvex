@@ -223,6 +223,19 @@ export default function ProfilePage({ user, initialTab = 'overview', onUpdateUse
         <div className="profile-topbar-right">
           <button
             type="button"
+            className={`profile-settings-btn ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+            title="Abrir ajustes y cuenta"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.8 1.8-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V22h-2.54v-.1a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.8-1.8.06-.06A1.7 1.7 0 0 0 8.12 17a1.7 1.7 0 0 0-1.56-1.03H6.5v-2.54h.06A1.7 1.7 0 0 0 8.12 12a1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.8-1.8.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V7h2.54v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.8 1.8-.06.06A1.7 1.7 0 0 0 19.4 12a1.7 1.7 0 0 0 1.56 1.03H21v2.54h-.06A1.7 1.7 0 0 0 19.4 15z" />
+            </svg>
+            <span>Ajustes y cuenta</span>
+          </button>
+
+          <button
+            type="button"
             className="profile-share-btn"
             onClick={handleShareProfile}
             title="Compartir enlace de perfil"
@@ -562,14 +575,6 @@ export default function ProfilePage({ user, initialTab = 'overview', onUpdateUse
             <span>Servicios & Tarifas</span>
           </button>
 
-          <button
-            type="button"
-            className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
-          >
-            <span className="tab-icon">⚙️</span>
-            <span>Ajustes & Cuenta</span>
-          </button>
         </nav>
 
         {/* Tab 1: Overview & Bio */}
