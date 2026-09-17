@@ -244,6 +244,7 @@ function App() {
   const [specialtySearch, setSpecialtySearch] = useState('')
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [profileInitialTab, setProfileInitialTab] = useState('overview')
   const [selectedRole, setSelectedRole] = useState(() => {
     const savedRoleId = storedState?.selectedRoleId ?? accountRoles[0].id
     return accountRoles.find((role) => role.id === savedRoleId) ?? accountRoles[0]
@@ -573,13 +574,17 @@ function App() {
 
     if (updatedData?.email) {
       try {
-        await fetch(`${getApiBaseUrl()}/api/update-profile`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/update-profile`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedData),
         })
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data?.error || 'No se pudo guardar el perfil.')
+        }
       } catch {
-        // Graceful fallback
+        setMessage('Los cambios se guardaron en este dispositivo, pero no se pudieron sincronizar con el servidor.')
       }
     }
   }
@@ -595,13 +600,22 @@ function App() {
 
     if (action === 'profile') {
       if (!accountUser) {
-        setAccountUser(DEFAULT_PROFILE)
+        setMessage('Inicia sesión para ver y editar tu perfil.')
+        return
       }
+      setProfileInitialTab('overview')
       setView('profile')
       return
     }
 
-    setMessage('Demo: aquí podrás subir una publicación.')
+    if (action === 'publish') {
+      if (!accountUser) {
+        setMessage('Inicia sesión para publicar tus servicios o proyectos.')
+        return
+      }
+      setProfileInitialTab('portfolio')
+      setView('profile')
+    }
   }
 
   function handleEnterLogin() {
@@ -696,6 +710,7 @@ function App() {
       {view === 'profile' ? (
         <ProfilePage
           user={accountUser || DEFAULT_PROFILE}
+          initialTab={profileInitialTab}
           onUpdateUser={handleProfileUpdate}
           onBackToHome={() => setView('landing')}
           onLogout={() => {
@@ -757,7 +772,11 @@ function App() {
                     type="button"
                     className="view-profile-nav-btn"
                     onClick={() => {
-                      if (!accountUser) setAccountUser(DEFAULT_PROFILE)
+                      if (!accountUser) {
+                        setMessage('Inicia sesión para ver y editar tu perfil.')
+                        return
+                      }
+                      setProfileInitialTab('overview')
                       setView('profile')
                     }}
                     title="Ver y editar tu perfil"

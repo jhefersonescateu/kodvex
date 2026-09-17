@@ -7,7 +7,7 @@ import {
 } from './profileData'
 import './ProfilePage.css'
 
-export default function ProfilePage({ user, onUpdateUser, onBackToHome, onLogout }) {
+export default function ProfilePage({ user, initialTab = 'overview', onUpdateUser, onBackToHome, onLogout }) {
   // Ensure profile has default values
   const profileData = {
     ...DEFAULT_PROFILE,
@@ -21,7 +21,7 @@ export default function ProfilePage({ user, onUpdateUser, onBackToHome, onLogout
     services: user?.services && user.services.length > 0 ? user.services : DEFAULT_PROFILE.services,
   }
 
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(profileData)
   const [newSkillInput, setNewSkillInput] = useState('')
@@ -98,8 +98,8 @@ export default function ProfilePage({ user, onUpdateUser, onBackToHome, onLogout
 
   function handleAddProjectSubmit(e) {
     e.preventDefault()
-    if (!newProject.name.trim()) {
-      showToast('Ingresa el nombre del proyecto.')
+    if (!newProject.name.trim() || !newProject.description.trim()) {
+      showToast('Completa el nombre y la descripción de la publicación.')
       return
     }
 
